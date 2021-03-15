@@ -9,10 +9,17 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.cos.jwtex1.config.jwt.JwtLoginFilter;
+import com.cos.jwtex1.config.jwt.JwtVerifyFilter;
+import com.cos.jwtex1.domain.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter{
+	
+	private final UserRepository userRepository;
 	
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
@@ -24,8 +31,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
-			.addFilter(new JwtLoginFilter(authenticationManager()))
-			//.addFilter(null)
+			.addFilter(new JwtLoginFilter(authenticationManager())) // 동작 : /login
+			.addFilter(new JwtVerifyFilter(authenticationManager(),userRepository)) // login이 아닌 모든 요청에 동작
 			.csrf().disable()
 			.formLogin().disable()
 			.httpBasic().disable()

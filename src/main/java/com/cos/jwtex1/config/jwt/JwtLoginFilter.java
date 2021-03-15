@@ -1,6 +1,7 @@
 package com.cos.jwtex1.config.jwt;
 
 import java.io.IOException;
+import java.util.Date;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -13,6 +14,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.cos.jwtex1.config.auth.PrincipalDetails;
 import com.cos.jwtex1.web.dto.LoginReqDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -55,6 +59,17 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter{
 			Authentication authResult) throws IOException, ServletException {
 		// JWT 토큰 만들어서 응답
 		System.out.println("로그인 완료되어서 세션 만들어짐. 이제 JWT토큰 만들어서 response.header에 응답할 자리");
+		PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
+		
+		// JWT 토큰은 보안 파일이 아님!! - 전자서명 역할
+		String jwtToken = JWT.create()
+				.withSubject("blogToken")
+				.withExpiresAt(new Date(System.currentTimeMillis()+1000*60*10)) // 만료시간
+				.withClaim("userId", principalDetails.getUser().getId())
+				.sign(Algorithm.HMAC512("홍길동"));
+		
+		System.out.println("jwtToken : "+jwtToken);
+		response.setHeader("Authorization", "Bearer "+jwtToken);
 	}
 	
 }
